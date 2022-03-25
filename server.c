@@ -1,6 +1,8 @@
-#include "mt.h"
+#include "header.h"
 
 #define D(...) fprintf(new_stream, __VA_ARGS__)
+
+#define MAXBUF 1024
 
 int main() {
 	int sock;
@@ -37,6 +39,39 @@ int main() {
 			if(new_socket < 0) perro("accept");
 			if(dup2(new_socket, STDOUT_FILENO) == -1) perro("dup2");
 			if(dup2(new_socket, STDERR_FILENO) == -1) perro("dup2");
+
+			char username[MAXBUF] = { 0 };
+			char passwd[MAXBUF] = { 0 };
+			int login_error_cnt = 0;
+			char enter_username_msg[MAXBUF] = "Enter username:\n";
+			char enter_passwd_msg[MAXBUF] = "Enter password:\n";
+			char *correct_username = "admin";
+			char *correct_passwd = "123123";
+			char *login_error = "Username or password error\n";
+			char *login_success = "Login success!\n";
+
+		login:
+			send(new_socket, enter_username_msg, strlen(enter_username_msg), 0);
+			recv(new_socket, username, MAXBUF, 0);
+			send(new_socket, enter_passwd_msg, strlen(enter_passwd_msg), 0);
+			recv(new_socket, passwd, MAXBUF, 0);
+
+			if (login_error_cnt > 3) {
+				printf("Too many try\n");
+				printf("Bye\n");
+
+				// close socket
+				close(new_socket);
+			}
+
+			// kill(0, SIGSTOP);
+
+			if ((strncmp(username, correct_username, strlen(correct_username)) != 0) || (strncmp(passwd, correct_passwd, strlen(correct_passwd)) != 0)) {
+				send(new_socket, login_error, strlen(login_error), 0);
+				login_error_cnt++;
+				goto login;
+			}
+
 			while(1) {
 				int readc = 0, filled = 0;
 				while(1) {

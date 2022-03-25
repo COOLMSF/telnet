@@ -1,7 +1,7 @@
 all: server client
 
-server: mt.h
-client: mt.h
+server: header.h
+client: header.h
 
 clean: 
 	rm -f server client
